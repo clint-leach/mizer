@@ -61,7 +61,7 @@ valid_MizerParams <- function(object) {
 	dim(object@selectivity)[2],
 	dim(object@catchability)[2],
 	dim(object@interaction)[1],
-	dim(object@interaction)[2]) == 
+	dim(object@interaction)[2]) + 1 == 
 	    dim(object@species_params)[1])){
 	    msg <- "The number of species in the model must be consistent across the species_params, psi, intake_max, search_vol, activity, pred_kernel, interaction (dim 1), selectivity, catchability and interaction (dim 2) slots"
 	    errors <- c(errors, msg)
@@ -149,8 +149,7 @@ valid_MizerParams <- function(object) {
 	dimnames(object@pred_kernel)[[1]],
 	dimnames(object@selectivity)[[2]],
 	dimnames(object@catchability)[[2]],
-	dimnames(object@interaction)[[1]],
-	dimnames(object@interaction)[[2]]) ==
+	dimnames(object@interaction)[[1]]) ==
 	    object@species_params$species)){
 	    msg <- "The species names of species_params, psi, intake_max, search_vol, std_metab, activity, pred_kernel, selectivity, catchability and interaction must all be the same"
 	    errors <- c(errors, msg)
@@ -377,7 +376,7 @@ setMethod('MizerParams', signature(object='numeric', interaction='missing'),
 	mat2 <- array(NA, dim=c(object,no_w,no_w_full), dimnames = list(sp=species_names,w_pred=signif(w,3), w_prey=signif(w_full,3)))
 	selectivity <- array(0, dim=c(length(gear_names), object, no_w), dimnames=list(gear=gear_names, sp=species_names, w=signif(w,3)))
 	catchability <- array(0, dim=c(length(gear_names), object), dimnames = list(gear=gear_names, sp=species_names))
-	interaction <- array(1, dim=c(object,object), dimnames = list(predator = species_names, prey = species_names))
+	interaction <- array(1, dim=c(object,object + 1), dimnames = list(predator = species_names, prey = c("resource", species_names)))
 	vec1 <- as.numeric(rep(NA, no_w_full))
 	names(vec1) <- signif(w_full,3)
 	
@@ -487,7 +486,7 @@ setMethod('MizerParams', signature(object='data.frame', interaction='matrix'),
 	res@species_params <- object
 	# Check dims of interaction argument - make sure it's right
 	if (!isTRUE(all.equal(dim(res@interaction), dim(interaction))))
-	    stop("interaction matrix is not of the right dimensions. Must be number of species x number of species")
+	    stop("interaction matrix is not of the right dimensions. Must be number of species x number of species + 1")
 	# Check that all values of interaction matrix are 0 - 1. Issue warning if not
 	if(!all((interaction>=0) & (interaction<=1)))
 	    warning("Values in the interaction matrix should be between 0 and 1")
@@ -563,7 +562,7 @@ setMethod('MizerParams', signature(object='data.frame', interaction='matrix'),
 #' @aliases MizerParams,data.frame,missing-method
 setMethod('MizerParams', signature(object='data.frame', interaction='missing'),
     function(object, ...){
-	interaction <- matrix(1,nrow=nrow(object), ncol=nrow(object))
+	interaction <- matrix(1,nrow=nrow(object), ncol=nrow(object) + 1)
 	res <- MizerParams(object,interaction, ...)
 	return(res)
 })
