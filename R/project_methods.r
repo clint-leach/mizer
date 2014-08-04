@@ -50,7 +50,7 @@ setMethod('getPhiPrey', signature(object='MizerParams', n = 'matrix', n_pp='nume
 	# n_eff_prey is the total prey abundance by size exposed to each predator (prey
 	# not broken into species - here we are just working out how much a predator
 	# eats - not which species are being eaten - that is in the mortality calculation
-	n_eff_prey <- sweep(object@interaction %*% n, 2, object@w * object@dw, "*") 
+	n_eff_prey <- sweep(object@interaction[, -1] %*% n, 2, object@w * object@dw, "*") 
 	# Quick reference to just the fish part of the size spectrum
 	idx_sp <- (length(object@w_full) - length(object@w) + 1):length(object@w_full)
 	# pred_kernel is predator x predator size x prey size
@@ -59,6 +59,8 @@ setMethod('getPhiPrey', signature(object='MizerParams', n = 'matrix', n_pp='nume
 	phi_prey_species <- rowSums(sweep(object@pred_kernel[,,idx_sp,drop=FALSE],c(1,3),n_eff_prey,"*"),dims=2)
 	# Eating the background
 	phi_prey_background <- rowSums(sweep(object@pred_kernel,3,object@dw_full*object@w_full*n_pp,"*"),dims=2)
+  # Rescaling by coupling to resource spectrum
+  phi_prey_background <- phi_prey_background * object@interaction[, 1]
 	return(phi_prey_species+phi_prey_background)
 })
 
@@ -278,7 +280,7 @@ setMethod('getM2', signature(object='MizerParams', n = 'matrix', n_pp='numeric',
 	idx_sp <- (length(object@w_full) - length(object@w) + 1):length(object@w_full)
 	# Interaction is predator x prey so need to transpose so it is prey x pred
 	# Sum pred_kernel over predator sizes to give total predation rate of each predator on each prey size
-	m2 <- t(object@interaction) %*% colSums(aperm(pred_rate, c(2,1,3)),dims=1)[,idx_sp]
+	m2 <- t(object@interaction[, -1]) %*% colSums(aperm(pred_rate, c(2,1,3)),dims=1)[,idx_sp]
 	return(m2)
 })
 #' @rdname getM2-methods
@@ -339,6 +341,7 @@ setMethod('getM2Background', signature(object='MizerParams', n = 'matrix', n_pp=
         if ((!all(dim(pred_rate) == c(nrow(object@species_params),length(object@w),length(object@w_full)))) | (length(dim(pred_rate))!=3)){
             stop("pred_rate argument must have 3 dimensions: no. species (",nrow(object@species_params),") x no. size bins (",length(object@w),") x no. size bins in community + background (",length(object@w_full),")")
         }
+        pred_rate <- pred_rate * object@interaction[, 1]
         M2background <- colSums(pred_rate,dims=2)
         return(M2background)
 })
