@@ -61,7 +61,7 @@ valid_MizerParams <- function(object) {
 	dim(object@selectivity)[2],
 	dim(object@catchability)[2],
 	dim(object@interaction)[1],
-	dim(object@interaction)[2]) + 1 == 
+	dim(object@interaction)[2] + 1) == 
 	    dim(object@species_params)[1])){
 	    msg <- "The number of species in the model must be consistent across the species_params, psi, intake_max, search_vol, activity, pred_kernel, interaction (dim 1), selectivity, catchability and interaction (dim 2) slots"
 	    errors <- c(errors, msg)
