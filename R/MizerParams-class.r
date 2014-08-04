@@ -484,8 +484,14 @@ setMethod('MizerParams', signature(object='data.frame', interaction='matrix'),
 	# Start filling the slots
 	res@species_params <- object
 	# Check dims of interaction argument - make sure it's right
-	if (!isTRUE(all.equal(dim(res@interaction), dim(interaction))))
+	if (!isTRUE(all.equal(dim(res@interaction), dim(interaction)))){
+    # If interaction has one fewer column (i.e. if resource interaction not included), add column of ones
+    if(dim(res@interaction)[2] == dim(interaction)[2] + 1){
+      interaction <- cbind(1, interaction)
+    } else {
 	    stop("interaction matrix is not of the right dimensions. Must be number of species x number of species + 1")
+    }
+	}
 	# Check that all values of interaction matrix are 0 - 1. Issue warning if not
 	if(!all((interaction>=0) & (interaction<=1)))
 	    warning("Values in the interaction matrix should be between 0 and 1")
