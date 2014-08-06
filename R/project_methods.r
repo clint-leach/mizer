@@ -568,7 +568,7 @@ setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric'
         # Fishing mortality
         f_mort <- getFMort(object, effort = effort)
         # Starvation mortality
-        starve <- -e / (0.1 * object@w)
+        starve <- sweep(-e, 2, (0.1 * object@w), "/")
         starve[e > 0] <- 0
         
         z = sweep(m2 + f_mort + starve,1,object@species_params$z0,"+")
