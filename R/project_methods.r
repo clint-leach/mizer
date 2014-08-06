@@ -537,7 +537,7 @@ setMethod('getFMort', signature(object='MizerSim', effort='missing'),
 #' @param n_pp A vector of the background abundance by size.
 #' @param effort A numeric vector of the effort by gear or a single numeric effort value which is used for all gears.
 #' @param m2 A two dimensional array of predation mortality (optional). Has dimensions no. sp x no. size bins in the community. If not supplied is calculated using the \code{getM2()} method.
-#'
+#' @param e A two dimensional array of energy availability. Has dimensions no. sp x no. size bins.
 #' @return A two dimensional array (prey species x prey size). 
 #'
 #' @export
@@ -560,22 +560,27 @@ setGeneric('getZ', function(object, n, n_pp, effort, m2, ...)
 
 #' @rdname getZ-methods
 #' @aliases getZ,MizerParams,matrix,numeric,numeric,matrix-method
-setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'matrix'),
-    function(object, n, n_pp, effort, m2){
+setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'matrix', e = 'matrix'),
+    function(object, n, n_pp, effort, m2, e){
         if (!all(dim(m2) == c(nrow(object@species_params),length(object@w)))){
             stop("m2 argument must have dimensions: no. species (",nrow(object@species_params),") x no. size bins (",length(object@w),")")
         }
+        # Fishing mortality
         f_mort <- getFMort(object, effort = effort)
-        z = sweep(m2 + f_mort,1,object@species_params$z0,"+")
+        # Starvation mortality
+        starve <- -e / (0.1 * object@w)
+        starve[e < 0] <- 0
+        
+        z = sweep(m2 + f_mort + starve,1,object@species_params$z0,"+")
         return(z)
 })
 
 #' @rdname getZ-methods
 #' @aliases getZ,MizerParams,matrix,numeric,numeric,missing-method
-setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'missing'),
-    function(object, n, n_pp, effort){
+setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'missing', e = 'matrix'),
+    function(object, n, n_pp, effort, e){
         m2 <- getM2(object, n=n, n_pp=n_pp)
-        z <- getZ(object, n=n, n_pp=n_pp, effort=effort, m2=m2)
+        z <- getZ(object, n=n, n_pp=n_pp, effort=effort, m2=m2, e=e)
         return(z)
 })
 
@@ -620,7 +625,6 @@ setMethod('getEReproAndGrowth', signature(object='MizerParams', n = 'matrix', n_
         e <- sweep(feeding_level * object@intake_max,1,object@species_params$alpha,"*")
         # Subtract basal metabolism and activity 
         e <- e - object@std_metab - object@activity
-        e[e<0] <- 0 # Do not allow negative growth
         return(e)
 })
 
@@ -671,6 +675,10 @@ setMethod('getESpawning', signature(object='MizerParams', n = 'matrix', n_pp = '
         if (!all(dim(e) == c(nrow(object@species_params),length(object@w)))){
             stop("e argument must have dimensions: no. species (",nrow(object@species_params),") x no. size bins (",length(object@w),")")
         }
+        
+        # No negative energy
+        e[e>0] <- 0
+        
         e_spawning <- object@psi * e 
         return(e_spawning)
     }
@@ -723,6 +731,10 @@ setMethod('getEGrowth', signature(object='MizerParams', n = 'matrix', n_pp = 'nu
         if (!all(dim(e) == c(nrow(object@species_params),length(object@w)))){
             stop("e argument must have dimensions: no. species (",nrow(object@species_params),") x no. size bins (",length(object@w),")")
         }
+        
+        # No negative energy
+        e[e>0] <- 0
+        
         # Assimilated intake less activity and metabolism
         # energy for growth is intake - energy for growth
         e_growth <- e - e_spawning
