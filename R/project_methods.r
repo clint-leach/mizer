@@ -555,7 +555,7 @@ setMethod('getFMort', signature(object='MizerSim', effort='missing'),
 #' # Get the total mortality at a particular time step
 #' getZ(params,sim@@n[21,,],sim@@n_pp[21,],effort=0.5)
 #' }
-setGeneric('getZ', function(object, n, n_pp, effort, m2, ...)
+setGeneric('getZ', function(object, n, n_pp, effort, m2, e, ...)
     standardGeneric('getZ'))
 
 #' @rdname getZ-methods
