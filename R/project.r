@@ -188,16 +188,16 @@ setMethod('project', signature(object='MizerParams', effort='array'),
             phi_prey <- getPhiPrey(sim@params, n=n, n_pp=n_pp)
             # Calculate amount f_i(w) of food consumed
             feeding_level <- getFeedingLevel(sim@params, n=n, n_pp=n_pp, phi_prey=phi_prey)
+            # Calculate the resources available for reproduction and growth
+            e <- getEReproAndGrowth(sim@params, n=n, n_pp=n_pp, feeding_level=feeding_level)
             # Calculate the predation rate
             pred_rate <- getPredRate(sim@params, n=n, n_pp=n_pp, feeding_level=feeding_level)
             # Calculate predation mortality on fish \mu_{p,i}(w)
             m2 <- getM2(sim@params, n=n, n_pp=n_pp, pred_rate=pred_rate)
             # Calculate total mortality \mu_i(w)
-            z <- getZ(sim@params, n=n, n_pp=n_pp, effort=effort_dt[i_time,], m2=m2)
+            z <- getZ(sim@params, n=n, n_pp=n_pp, effort=effort_dt[i_time,], m2=m2, e=e)
             # Calculate predation mortality on the background spectrum
             m2_background <- getM2Background(sim@params, n=n, n_pp=n_pp, pred_rate=pred_rate)
-            # Calculate the resources available for reproduction and growth
-            e <- getEReproAndGrowth(sim@params, n=n, n_pp=n_pp, feeding_level=feeding_level)
             # Calculate the resources for reproduction
             e_spawning <- getESpawning(sim@params, n=n, n_pp=n_pp, e=e)
             # Calculate the growth rate g_i(w)
