@@ -677,7 +677,7 @@ setMethod('getESpawning', signature(object='MizerParams', n = 'matrix', n_pp = '
         }
         
         # No negative energy
-        e[e>0] <- 0
+        e[e<0] <- 0
         
         e_spawning <- object@psi * e 
         return(e_spawning)
@@ -733,7 +733,7 @@ setMethod('getEGrowth', signature(object='MizerParams', n = 'matrix', n_pp = 'nu
         }
         
         # No negative energy
-        e[e>0] <- 0
+        e[e<0] <- 0
         
         # Assimilated intake less activity and metabolism
         # energy for growth is intake - energy for growth
