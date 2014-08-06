@@ -559,7 +559,7 @@ setGeneric('getZ', function(object, n, n_pp, effort, m2, e, ...)
     standardGeneric('getZ'))
 
 #' @rdname getZ-methods
-#' @aliases getZ,MizerParams,matrix,numeric,numeric,matrix-method
+#' @aliases getZ,MizerParams,matrix,numeric,numeric,matrix,matrix-method
 setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'matrix', e = 'matrix'),
     function(object, n, n_pp, effort, m2, e){
         if (!all(dim(m2) == c(nrow(object@species_params),length(object@w)))){
@@ -569,14 +569,14 @@ setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric'
         f_mort <- getFMort(object, effort = effort)
         # Starvation mortality
         starve <- -e / (0.1 * object@w)
-        starve[e < 0] <- 0
+        starve[e > 0] <- 0
         
         z = sweep(m2 + f_mort + starve,1,object@species_params$z0,"+")
         return(z)
 })
 
 #' @rdname getZ-methods
-#' @aliases getZ,MizerParams,matrix,numeric,numeric,missing-method
+#' @aliases getZ,MizerParams,matrix,numeric,numeric,missing,matrix-method
 setMethod('getZ', signature(object='MizerParams', n = 'matrix', n_pp = 'numeric', effort='numeric', m2 = 'missing', e = 'matrix'),
     function(object, n, n_pp, effort, e){
         m2 <- getM2(object, n=n, n_pp=n_pp)
