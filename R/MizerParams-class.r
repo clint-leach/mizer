@@ -451,7 +451,12 @@ setMethod('MizerParams', signature(object='data.frame', interaction='matrix'),
     if(!("gamma" %in% colnames(object))){
         cat("Note: \tNo gamma column in species data frame so using f0, h, beta, sigma, lambda and kappa to calculate it.\n")
         ae <- sqrt(2*pi) * object$sigma * object$beta^(lambda-2) * exp((lambda-2)^2 * object$sigma^2 / 2)
-        object$gamma <- (object$h / (kappa * ae)) * (f0 / (1 - f0))
+        # If interaction matrix is square (i.e. coupling to resource assumed to be 1)
+        if(dim(interaction)[1] == dim(interaction[2])){
+          object$gamma <- (object$h / (kappa * ae)) * (f0 / (1 - f0))
+        } else {
+          object$gamma <- (object$h / (kappa * ae * interaction[, 1])) * (f0 / (1 - f0))
+        }   
     }
     # Sort out z0 column
     if(!("z0" %in% colnames(object))){
